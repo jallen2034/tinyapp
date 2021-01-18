@@ -10,19 +10,23 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// route for the index
-app.get("/", (req, res) => {
-  res.send("Hello!");
+// app route for the /hello path of our app, this returns the { greeting: 'Hello World!' } object to our template
+app.get("/hello", (req, res) => {
+  const templateVars = { greeting: 'Hello World!' };
+  // first argument is the view we pass to the template engine
+  // second argument is the variable containing the 'stuff' we want to insert into that previous view
+  res.render("hello_world", templateVars);
+});
+
+// app route handler for "/urls"
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars)
 });
 
 // app route for urls.json
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-// app route to send back the user hello HTML
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {

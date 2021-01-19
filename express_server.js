@@ -48,7 +48,15 @@ app.post("/urls", (req, res) => {
   console.log(req.body);
   const randomString = generateRandomString();
   console.log(randomString);
-  res.send("Ok");      
+  urlDatabase[randomString] = req.body.longURL;
+  console.log("urlDatabase: ", urlDatabase);
+  res.redirect(`/urls/${randomString}`)
+});
+
+// GET app route for the user to use and test their newly generated short URL from the post above
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 // GET app route for /urls/new app route, remember this needs to come before the /urls/:shortURL app route!
@@ -63,10 +71,13 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
 // GET app route for urls.json
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
+
 
 
 app.listen(PORT, () => {

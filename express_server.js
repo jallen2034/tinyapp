@@ -26,7 +26,7 @@ function generateRandomString() {
   }
  
   return text;
-}
+};
 
 // GET app route for the /hello path of our app, this returns the { greeting: 'Hello World!' } object to our template
 // first argument of res.render() is the view we pass to the template engine
@@ -45,11 +45,8 @@ app.get("/urls", (req, res) => {
 // POST app route for "/urls"
 // Respond with 'Ok' (we will replace this)
 app.post("/urls", (req, res) => {
-  console.log(req.body);
   const randomString = generateRandomString();
-  console.log(randomString);
   urlDatabase[randomString] = req.body.longURL;
-  console.log("urlDatabase: ", urlDatabase);
   res.redirect(`/urls/${randomString}`)
 });
 
@@ -71,16 +68,11 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-
 // GET app route for urls.json
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-
-
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-

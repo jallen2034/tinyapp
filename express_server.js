@@ -44,8 +44,8 @@ app.get("/urls", (req, res) => {
 
 // POST request to handle when user clicks on a url to delete from /urls/
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(req.params);
   const keyToDelete = req.params.shortURL;
+  console.log("keyToDelete: ", keyToDelete);
   delete urlDatabase[keyToDelete];
   res.redirect('/urls');
 });
@@ -58,11 +58,17 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomString}`)
 });
 
-
-// GET app route for the user to use and test their newly generated short URL from the post above
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+// post request from /urls/:shortURL to edit a existing url
+// this post request takes in the /urls/:shortURL as its first paramater 
+// we then store the short url from the requests paramaters from the client in urlToEdit
+// the text from inside of the form in urls_new.ejs was stores as a key 'edit' from that file, we access that key and the new longurl text the user inputted inside
+// we are assinging that new long url the user typed in into our urlDatabase at the same key as the short url we passed in to this app route, urlDatabase[urlToEdit]
+// we then redirect back to the /urls/${urlToEdit} app route after we are done updating the url
+app.post('/urls/:shortURL', (req, res) => {
+  const urlToEdit = req.params.shortURL;
+  console.log(req.body.edit);
+  urlDatabase[urlToEdit] = req.body.edit;
+  res.redirect(`/urls/${urlToEdit}`);
 });
 
 // GET app route for /urls/new app route, remember this needs to come before the /urls/:shortURL app route!
@@ -72,6 +78,7 @@ app.get("/urls/new", (req, res) => {
 
 // GET app route for short urls
 // remember "req.params.shortURL" is shorthand for whatever the user inputted client side in the url /urls/:*HERE*
+// this app route also handles the redirect for when the user clicks on the 'edit' button in urls_index.js
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);

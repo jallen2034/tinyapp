@@ -21,10 +21,15 @@
         </tr>
       </thead>
       <tbody>
+        <!--remember in this loop, "url" is the object holding the short and long urls, this key is the short url-->
+        <!--urls[url] is the value in that key value pair, the long url-->
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
+            <!--Delete button goes here-->
+            <!-- https://www.w3schools.com/tags/tag_button.asp -->
+            <td><form method="POST" action="/urls/<%= url %>/delete"><button class = "btn btn-outline-danger" type="submit">Delete</button></form></td>
           </tr>
         <% } %>
       </tbody>

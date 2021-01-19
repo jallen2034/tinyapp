@@ -42,6 +42,14 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars)
 });
 
+// POST request to handle when user clicks on a url to delete from /urls/
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log(req.params);
+  const keyToDelete = req.params.shortURL;
+  delete urlDatabase[keyToDelete];
+  res.redirect('/urls');
+});
+
 // POST app route for "/urls"
 // Respond with 'Ok' (we will replace this)
 app.post("/urls", (req, res) => {
@@ -49,6 +57,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[randomString] = req.body.longURL;
   res.redirect(`/urls/${randomString}`)
 });
+
 
 // GET app route for the user to use and test their newly generated short URL from the post above
 app.get("/u/:shortURL", (req, res) => {

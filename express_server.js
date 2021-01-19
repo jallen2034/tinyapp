@@ -24,6 +24,13 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars)
 });
 
+// app route for short urls
+// remember "req.params.shortURL" is shorthand for whatever the user inputted client side in the url /urls/:*HERE*
+app.get('/urls/:shortURL', (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] }
+  res.render("urls_show", templateVars);
+});
+
 // app route for urls.json
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);

@@ -46,7 +46,6 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     username: req.cookies["username"]
   };
-  console.log("req.cookies['username']: ", req.cookies['username']);
   res.render("urls_index", templateVars);
 });
 
@@ -88,7 +87,6 @@ app.post("/urls", (req, res) => {
 // we then redirect back to the /urls/${urlToEdit} app route after we are done updating the url
 app.post('/urls/:shortURL', (req, res) => {
   const urlToEdit = req.params.shortURL;
-  console.log(req.body.edit);
   urlDatabase[urlToEdit] = req.body.edit;
   res.redirect(`/urls/${urlToEdit}`);
 });

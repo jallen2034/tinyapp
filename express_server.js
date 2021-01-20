@@ -35,16 +35,29 @@ const users = {
 
 // function that will get users by email 
 // takes in req.body.email as "userEmail" from the form the user submitted to the login POST app route this function is called
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
 const getUsersbyEmail = function (userEmail) {
   const user = {};
 
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
   for (const [key, value] of Object.entries(users)) {
     if (value.email === userEmail) {
       user["id"] = value.id;
     }
   }
+
   return user;
+}
+
+const emailTaken = function (userEmail) {
+  let returnBool = false;
+
+  for (const [key, value] of Object.entries(users)) {
+    if (value.email === userEmail) {
+      returnBool = true;
+    }
+  }
+
+  return returnBool;
 }
 
 // function to generate a 6 char random string, this is not my own implementation:
@@ -68,11 +81,34 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const id = generateRandomString();
-  const user = {id, email, password}
+
+  const error = ["Must provide email!", "Must provide password!", "Email is taken!"];
+
+  const emaiIsTaken = emailTaken(email);
+  console.log(emailTaken);
+
+  if (!email) {
+    const templateVars = {
+      error: error[0]
+    };
+    res.render('404', templateVars);
+  } else if (!password) {
+    const templateVars = {
+      error: error[1]
+    };
+    res.render('404', templateVars);
+  } else if (emaiIsTaken === true) {
+    const templateVars = {
+      error: error[2]
+    };
+    res.render('404', templateVars);  
+  } else {
+    const user = {id, email, password}
   
-  users[id] = user;
-  res.cookie('user_id', user.id);
-  res.redirect('/urls');
+    users[id] = user;
+    res.cookie('user_id', user.id);
+    res.redirect('/urls');
+  }
 });
 
 // POST request to handle when user clicks on a url they wish to delete from: /urls/

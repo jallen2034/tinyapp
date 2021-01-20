@@ -6,13 +6,12 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-const cookieParser = require('cookie-parser');
 // using cookie parser gives us the ability to set cookies as a response and a request property
+const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 // set ejs as the template engine that we will want to use
 app.set("view engine", "ejs");
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"

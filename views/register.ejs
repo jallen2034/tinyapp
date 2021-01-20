@@ -13,15 +13,15 @@
   <%- include('partials/_header') %>
   <main style="margin: 1em;">
     <h3>Register</h3>
-    <!--took this user registration form from my previous CS50 final project to save time:-->
-    <!-- https://github.com/jallen2034/CS50-Final-Project/blob/master/Final%20Project/templates/register.html-->
+    <!-- took this user registration form from my previous CS50 final project to save time: -->
+    <!-- https://github.com/jallen2034/CS50-Final-Project/blob/master/Final%20Project/templates/register.html -->
     <div class="register">
       <form action="/register" method="post">
         <div class="form-group">
-          <input autocomplete="off" autofocus class="form-control" name="email" placeholder="Username" type="email">
+          <input autocomplete="off" autofocus class="form-control" name="email" placeholder="email" type="email">
         </div>
         <div class="form-group">
-          <input class="form-control" name="password" placeholder="Password" type="password">
+          <input class="form-control" name="password" placeholder="password" type="password">
         </div>
         <button class="btn btn-primary" type="submit">Register</button>
       </form>

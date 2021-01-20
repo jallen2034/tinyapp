@@ -12,10 +12,40 @@ app.use(cookieParser());
 
 // set ejs as the template engine that we will want to use
 app.set("view engine", "ejs");
+
+// pseudo 'database' we use to store the urls in memory
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+// global object called users which will be used to store and access the users in the app.
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+// function that will get users by email 
+// takes in req.body.email as "userEmail" from the form the user submitted to the login POST app route this function is called
+const getUsersbyEmail = function (userEmail) {
+  const user = {};
+
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+  for (const [key, value] of Object.entries(users)) {
+    if (value.email === userEmail) {
+      user["id"] = value.id;
+    }
+  }
+  return user;
+}
 
 // function to generate a 6 char random string, this is not my own implementation:
 // https://stackoverflow.com/questions/16106701/how-to-generate-a-random-string-of-letters-and-numbers-in-javascript
@@ -31,8 +61,22 @@ const generateRandomString = function() {
   return text;
 };
 
+// POST endpoint that will add a new user object to the global users object
+// update our global users object to add the new user's email, password and id into said nested object
+// create a new cookie and send it to their client track this users login info in their browser
+app.post('/register', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const id = generateRandomString();
+  const user = {id, email, password}
+  
+  users[id] = user;
+  res.cookie('user_id', user.id);
+  res.redirect('/urls');
+});
+
 // POST request to handle when user clicks on a url they wish to delete from: /urls/
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.post('/urls/:shortURL/delete', (req, res) => {
   const keyToDelete = req.params.shortURL;
   delete urlDatabase[keyToDelete];
   res.redirect('/urls');
@@ -41,23 +85,35 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // endpoint to handle a POST to /login in our Express server
 // set our cookie for the current logged in username, which was submitted from the form in the header.js
 // remember when you set the cookie in this app route is accessible in all other get routes thanks to cookie parser
-app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
+// call getUsersbyEmail(), which checks if the email in req.body.email exists in the users object
+// if its not found, 'user' var will be undefined, below if check catches this instance and wont make a cookie from req.body.email if so
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const user = getUsersbyEmail(email);
+
+  if (!user) {
+    res.redirect('/urls');
+    return;
+  }
+
+  res.cookie('user_id', user.id);
   res.redirect('/urls');
 });
 
 // endpoint to handle a POST to /logout in my Express server
-app.post("/logout", (req, res) => {
-  res.clearCookie('username');
+// clear the current cookie that was generated before with the key: "user_id"
+app.post('/logout', (req, res) => {
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
-// POST app route for "/urls"
-// Respond with 'Ok' (we will replace this)
-app.post("/urls", (req, res) => {
-  const randomString = generateRandomString();
-  urlDatabase[randomString] = req.body.longURL;
-  res.redirect(`/urls/${randomString}`);
+// POST app route that will allow the user to create a new custom URL to be saved in our database
+// this route generates a new string, then uses the long url it got from the form tagged with 'longURL' as its name in urls_new.ejs
+// it assigns this new long url to urlDatabase[] using randomString as the key and req.body.longURL as the value
+app.post('/urls', (req, res) => {
+  const randomURLkey = generateRandomString();
+  urlDatabase[randomURLkey] = req.body.longURL;
+  res.redirect(`/urls/${randomURLkey}`);
 });
 
 // post request from /urls/:shortURL to edit a existing url, this takes in the /urls/:shortURL as its first paramater
@@ -72,43 +128,53 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 
 // GET route to handle loading the user registration page for the user
-app.get("/register", (req, res) => {
-  const templateVars = {username: null};
-  res.render("register", templateVars);
+app.get('/register', (req, res) => {
+  const id = req.cookies["user_id"];
+  const user = users[id];
+
+  const templateVars = {urls: urlDatabase, user};
+  res.render('register', templateVars);
 });
 
 // GET app route handler for: "/urls"
-app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    username: req.cookies["username"]
-  };
-  res.render("urls_index", templateVars);
+app.get('/urls', (req, res) => {
+  const id = req.cookies["user_id"];
+  const user = users[id];
+  console.log("user", user);
+
+  const templateVars = {urls: urlDatabase, user};
+  console.log(templateVars);
+  res.render('urls_index', templateVars);
 });
 
 // GET app route for /urls/new app route, this needs to come before the /urls/:shortURL app route!
 // send back the global cookie we created before back into our client encloded in a 'templateVars' object
-app.get("/urls/new", (req, res) => {
-  const templateVars = {
-    username: req.cookies["username"]
-  };
-  res.render("urls_new", templateVars);
+// we are passing templateVars a key username which value is the cookie coming in with the request from the client which is currently called 'username'
+app.get('/urls/new', (req, res) => {
+  const id = req.cookies["user_id"];
+  const user = users[id];
+
+  const templateVars = {urls: urlDatabase, user};
+  res.render('urls_new', templateVars);
 });
 
 // GET app route for short urls
 // "req.params.shortURL" is shorthand for whatever the user inputted client side in the url /urls/:*HERE*
 // this app route also handles any redirects for when the user clicks on the 'edit' button in urls_index.js
 app.get('/urls/:shortURL', (req, res) => {
+  const id = req.cookies["user_id"];
+  const user = users[id];
+
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    user
   };
-  res.render("urls_show", templateVars);
+  res.render('urls_show', templateVars);
 });
 
 // GET app route for urls.json
-app.get("/urls.json", (req, res) => {
+app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
@@ -123,3 +189,4 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+

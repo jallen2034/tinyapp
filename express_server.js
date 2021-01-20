@@ -6,6 +6,10 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+const cookieParser = require('cookie-parser');
+// using cookie parser gives us the ability to set cookies as a response and a request property
+app.use(cookieParser());
+
 // set ejs as the template engine that we will want to use
 app.set("view engine", "ejs");
 
@@ -16,12 +20,12 @@ const urlDatabase = {
 
 // function to generate a random string
 // https://stackoverflow.com/questions/16106701/how-to-generate-a-random-string-of-letters-and-numbers-in-javascript
-function generateRandomString() {
+const generateRandomString = function() {
   const textLen = 6;
-  var text = "";
-  var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let text = "";
+  let charset = "abcdefghijklmnopqrstuvwxyz0123456789";
   
-  for (var i = 0; i < textLen; i++) {
+  for (let i = 0; i < textLen; i++) {
     text += charset.charAt(Math.floor(Math.random() * charset.length));
   }
  
@@ -38,15 +42,33 @@ app.get("/hello", (req, res) => {
 
 // GET app route handler for "/urls"
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars)
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
+  console.log("req.cookies['username']: ", req.cookies['username']);
+  res.render("urls_index", templateVars);
 });
 
 // POST request to handle when user clicks on a url to delete from /urls/
 app.post("/urls/:shortURL/delete", (req, res) => {
   const keyToDelete = req.params.shortURL;
-  console.log("keyToDelete: ", keyToDelete);
   delete urlDatabase[keyToDelete];
+  res.redirect('/urls');
+});
+
+// endpoint to handle a POST to /login in your Express server
+// console.log(req.body);
+// set our cookie for the current logged in username which was submitted from the form in the header.js
+// remember when you set the cookie in this app route that it somehow magically is accessible in all other get routes
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
+});
+
+// endpoint to handle a POST to /logout in your Express server
+app.post("/logout", (req, res) => {
+  res.clearCookie('username');
   res.redirect('/urls');
 });
 
@@ -55,11 +77,11 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   urlDatabase[randomString] = req.body.longURL;
-  res.redirect(`/urls/${randomString}`)
+  res.redirect(`/urls/${randomString}`);
 });
 
 // post request from /urls/:shortURL to edit a existing url
-// this post request takes in the /urls/:shortURL as its first paramater 
+// this post request takes in the /urls/:shortURL as its first paramater
 // we then store the short url from the requests paramaters from the client in urlToEdit
 // the text from inside of the form in urls_new.ejs was stores as a key 'edit' from that file, we access that key and the new longurl text the user inputted inside
 // we are assinging that new long url the user typed in into our urlDatabase at the same key as the short url we passed in to this app route, urlDatabase[urlToEdit]
@@ -72,15 +94,23 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 
 // GET app route for /urls/new app route, remember this needs to come before the /urls/:shortURL app route!
+// take global cookie we declared before and pass it back into our client as the second arg
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 // GET app route for short urls
 // remember "req.params.shortURL" is shorthand for whatever the user inputted client side in the url /urls/:*HERE*
 // this app route also handles the redirect for when the user clicks on the 'edit' button in urls_index.js
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"]
+  };
   res.render("urls_show", templateVars);
 });
 

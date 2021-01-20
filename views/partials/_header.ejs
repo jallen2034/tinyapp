@@ -9,6 +9,19 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+      <!-- here username represents the value inside of the username key, inside of templateVars which we previously passed to this template from an app route from our server -->
+      <% if (username) { %>
+        <h5 style= "padding-left: 3em; padding-right: 1em"><%= username %></h5>
+        <form action="/logout" method="POST">
+          <button class = "btn btn-outline-dark" type="submit">Logout</button>
+        </form>  
+      <% } else { %>  
+        <!--form with user login-->
+        <form style= "padding-left: 3em; padding-right: 1em" action="/login" method="POST">
+        <input type="text" name="username">
+          <button class = "btn btn-outline-dark" type="submit">Login</button>
+        </form>
+      <% } %>
     </div>
   </nav>
 </header>

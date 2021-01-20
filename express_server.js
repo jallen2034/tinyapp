@@ -31,7 +31,6 @@ const generateRandomString = function() {
   return text;
 };
 
-
 // POST request to handle when user clicks on a url they wish to delete from: /urls/
 app.post("/urls/:shortURL/delete", (req, res) => {
   const keyToDelete = req.params.shortURL;
@@ -70,6 +69,12 @@ app.post('/urls/:shortURL', (req, res) => {
   const urlToEdit = req.params.shortURL;
   urlDatabase[urlToEdit] = req.body.edit;
   res.redirect(`/urls/${urlToEdit}`);
+});
+
+// GET route to handle loading the user registration page for the user
+app.get("/register", (req, res) => {
+  const templateVars = {username: null};
+  res.render("register", templateVars);
 });
 
 // GET app route handler for: "/urls"

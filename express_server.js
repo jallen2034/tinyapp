@@ -2,11 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
-// include body parser module so we can submit POST requests with forms
+// include body parser module so we can submit POST requests with forms to our express server
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-// using cookie parser gives us the ability to set cookies as a response and a request property
+// using cookie parser gives us the ability to set cookies as a response and a request property, globally
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
@@ -17,7 +17,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// function to generate a random string
+// function to generate a 6 char random string, this is not my own implementation:
 // https://stackoverflow.com/questions/16106701/how-to-generate-a-random-string-of-letters-and-numbers-in-javascript
 const generateRandomString = function() {
   const textLen = 6;
@@ -31,40 +31,23 @@ const generateRandomString = function() {
   return text;
 };
 
-// GET app route for the /hello path of our app, this returns the { greeting: 'Hello World!' } object to our template
-// first argument of res.render() is the view we pass to the template engine
-// second argument of res.render() is the variable containing the 'stuff' we want to insert into that previous view
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
-});
 
-// GET app route handler for "/urls"
-app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    username: req.cookies["username"]
-  };
-  res.render("urls_index", templateVars);
-});
-
-// POST request to handle when user clicks on a url to delete from /urls/
+// POST request to handle when user clicks on a url they wish to delete from: /urls/
 app.post("/urls/:shortURL/delete", (req, res) => {
   const keyToDelete = req.params.shortURL;
   delete urlDatabase[keyToDelete];
   res.redirect('/urls');
 });
 
-// endpoint to handle a POST to /login in your Express server
-// console.log(req.body);
-// set our cookie for the current logged in username which was submitted from the form in the header.js
-// remember when you set the cookie in this app route that it somehow magically is accessible in all other get routes
+// endpoint to handle a POST to /login in our Express server
+// set our cookie for the current logged in username, which was submitted from the form in the header.js
+// remember when you set the cookie in this app route is accessible in all other get routes thanks to cookie parser
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls');
 });
 
-// endpoint to handle a POST to /logout in your Express server
+// endpoint to handle a POST to /logout in my Express server
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
@@ -78,20 +61,28 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomString}`);
 });
 
-// post request from /urls/:shortURL to edit a existing url
-// this post request takes in the /urls/:shortURL as its first paramater
-// we then store the short url from the requests paramaters from the client in urlToEdit
-// the text from inside of the form in urls_new.ejs was stores as a key 'edit' from that file, we access that key and the new longurl text the user inputted inside
-// we are assinging that new long url the user typed in into our urlDatabase at the same key as the short url we passed in to this app route, urlDatabase[urlToEdit]
-// we then redirect back to the /urls/${urlToEdit} app route after we are done updating the url
+// post request from /urls/:shortURL to edit a existing url, this takes in the /urls/:shortURL as its first paramater
+// store the short url from the requests paramaters, from the client in 'urlToEdit'
+// the text from the form in our urls_new.ejs was stored as a key 'edit', we access that key, the new 'long url' text the user inputted is inside that key val pair
+// assign this new 'long url' the user entered in into our 'urlDatabase' using the same key name as the we passed in to this app route: urlDatabase[urlToEdit]
+// redirect back to the /urls/${urlToEdit} app route after we are done
 app.post('/urls/:shortURL', (req, res) => {
   const urlToEdit = req.params.shortURL;
   urlDatabase[urlToEdit] = req.body.edit;
   res.redirect(`/urls/${urlToEdit}`);
 });
 
-// GET app route for /urls/new app route, remember this needs to come before the /urls/:shortURL app route!
-// take global cookie we declared before and pass it back into our client as the second arg
+// GET app route handler for: "/urls"
+app.get("/urls", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
+  res.render("urls_index", templateVars);
+});
+
+// GET app route for /urls/new app route, this needs to come before the /urls/:shortURL app route!
+// send back the global cookie we created before back into our client encloded in a 'templateVars' object
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     username: req.cookies["username"]
@@ -100,8 +91,8 @@ app.get("/urls/new", (req, res) => {
 });
 
 // GET app route for short urls
-// remember "req.params.shortURL" is shorthand for whatever the user inputted client side in the url /urls/:*HERE*
-// this app route also handles the redirect for when the user clicks on the 'edit' button in urls_index.js
+// "req.params.shortURL" is shorthand for whatever the user inputted client side in the url /urls/:*HERE*
+// this app route also handles any redirects for when the user clicks on the 'edit' button in urls_index.js
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
@@ -114,6 +105,14 @@ app.get('/urls/:shortURL', (req, res) => {
 // GET app route for urls.json
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+// get 'edge case' route to re-direct the user to my 404.ejs template, if they try access a route which doesnt exist
+app.get('*', (req, res) => {
+  const templateVars = {
+    error: '404 not found!'
+  };
+  res.render('404', templateVars);
 });
 
 app.listen(PORT, () => {

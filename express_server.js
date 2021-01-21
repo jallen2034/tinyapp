@@ -35,23 +35,21 @@ const users = {
 
 // function that will get users by email 
 // takes in req.body.email as "userEmail" from the form the user submitted to the login POST app route this function is called
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values
 const passwordvalidator = function (userPassword) {
-  let returnBool = false;
-
-  for (const [key, value] of Object.entries(users)) {
+  for (const value of Object.values(users)) {
     if (value.password === userPassword) {
-      returnBool = value.id;
+      return value.id;
     }
   }
 
-  return returnBool;
+  return false;
 }
 
 const emailExists = function (userEmail) {
   let returnBool = false;
 
-  for (const [key, value] of Object.entries(users)) {
+  for (const value of Object.values(users)) {
     if (value.email === userEmail) {
       returnBool = true;
     }
@@ -77,28 +75,30 @@ const generateRandomString = function() {
 // POST endpoint that will add a new user object to the global users object
 // update our global users object to add the new user's email, password and id into said nested object
 // create a new cookie and send it to their client track this users login info in their browser
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 app.post('/register', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+  const { email, password } = req.body;
   const id = generateRandomString();
-
-  const error = ["Must provide email!", "Must provide password!", "Email is taken!"];
-
-  const emaiIsTaken = emailExists(email);
-
+  const emailIsTaken = emailExists(email);
+  const errors = {
+    email: "Must provide email!",
+    password: "Must provide password!",
+    emailInUse: "Email is taken!",
+  }
+  
   if (!email) {
     const templateVars = {
-      error: error[0]
+      error: errors.email
     };
     res.status(400).render('404', templateVars);
   } else if (!password) {
     const templateVars = {
-      error: error[1]
+      error: errors.password
     };
     res.status(400).render('404', templateVars);
-  } else if (emaiIsTaken === true) {
+  } else if (emailIsTaken) {
     const templateVars = {
-      error: error[2]
+      error: errors.emailInUse
     };
     res.status(400).render('404', templateVars);  
   } else {
@@ -123,33 +123,34 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 // call getUsersbyEmail(), which checks if the email in req.body.email exists in the users object
 // if its not found, 'user' var will be undefined, below if check catches this instance and wont make a cookie from req.body.email if so
 app.post('/login', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-
+  const { email, password } = req.body;
   const validUserIDPassword = passwordvalidator(password);
   const validUserEmail = emailExists(email);
-  console.log("validUserEmail", validUserEmail);
-
-  const error = ["Must provide a email", "Must provide password", "Invalid email!", "Invalid Password!"]
+  const errors = {
+    email: "Must provide email!",
+    password: "Must provide password!",
+    emailNoExist: "Invalid email!",
+    invalidPassword: "Invalid Password!"
+  };
 
   if (!email) {
     const templateVars = {
-      error: error[0]
+      error: errors.email
     };
     res.status(400).render('404', templateVars);
   } else if (!password) {
     const templateVars = {
-      error: error[1]
+      error: errors.password
     };
     res.status(400).render('404', templateVars);
   } else if (!validUserEmail) {
     const templateVars = {
-      error: error[2]
+      error: errors.emailNoExist
     };
     res.status(400).render('404', templateVars);
   } else if (!validUserIDPassword) {
     const templateVars = {
-      error: error[3]
+      error: errors.invalidPassword
     };
     res.status(400).render('404', templateVars);
   } else {
@@ -187,19 +188,13 @@ app.post('/urls/:shortURL', (req, res) => {
 
 // GET endpoint to handle loading the user registration page for the user
 app.get('/login', (req, res) => {
-  const id = req.cookies["user_id"];
-  const user = users[id];
-
-  const templateVars = {user};
+  const templateVars = {user: null};
   res.render('login', templateVars);
 });
 
 // GET route to handle loading the user registration page for the user
 app.get('/register', (req, res) => {
-  const id = req.cookies["user_id"];
-  const user = users[id];
-
-  const templateVars = {user};
+  const templateVars = {user: null};
   res.render('register', templateVars);
 });
 

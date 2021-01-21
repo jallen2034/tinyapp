@@ -6,17 +6,27 @@
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <title>Login</title>
 </head>
 <body>
+  <!--include our navbar header partial to extend out from kinda like extends with jinja -->
+  <%- include('partials/_header') %>
   <main style="margin: 1em;">
-  <!-- Render an error to user if they hit an invalid path-->
-  <!-- alert for when user logs in -->
-  <div class ="alert-messages">
-    <div class="alert alert-primary fade show p-1" role="alert" style="position:abolute;z-index:999;">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true"></span></button>
-      <%= error %>
+    <h3>Login</h3>
+    <!-- took this user registration form from my previous CS50 final project to save time: -->
+    <!-- https://github.com/jallen2034/CS50-Final-Project/blob/master/Final%20Project/templates/register.html -->
+    <div class="login">
+      <form action="/login" method="post">
+        <div class="form-group">
+          <input autocomplete="off" autofocus class="form-control" name="email" placeholder="email" type="email">
+        </div>
+        <div class="form-group">
+          <input class="form-control" name="password" placeholder="password" type="password">
+        </div>
+        <button class="btn btn-primary" type="submit">Login</button>
+      </form>
     </div>
-  </div>
+  </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

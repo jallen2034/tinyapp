@@ -16,12 +16,13 @@
           <button class = "btn btn-outline-dark" type="submit">Logout</button>
         </form>  
       <% } else { %>  
-        <!--form with user login-->
-        <form style= "padding-left: 3em; padding-right: 1em" action="/login" method="POST">
-        <input type="text" name="email">
-          <button class = "btn btn-outline-dark" type="submit">Login</button>
+        <form action="/register" method="GET">
+          <button class = "btn btn-outline-dark" type="submit">Register</button>
         </form>
-      <% } %>
+        <form action="/login" method="GET">
+          <button class = "btn btn-outline-dark" type="submit">Login</button>
+        </form>  
+      <% } %>  
     </div>
   </nav>
 </header>

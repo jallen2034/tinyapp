@@ -181,14 +181,14 @@ app.post('/logout', (req, res) => {
 // POST app route that will allow the user to create a new custom URL to be saved in our database
 // this route generates a new string, then uses the long url it got from the form tagged with 'longURL' as its name in urls_new.ejs
 // it assigns this new long url to urlDatabase[] using randomString as the key and req.body.longURL as the value
+// we need to grab user id
+// once we get this, go to the database and check it exists, if not redirect user to login
 app.post('/urls', (req, res) => {
-  // 1. need to grab user id 
   const id = req.cookies["user_id"];
   const longUrl = req.body.longURL;
   const idIsExisting = idExists(id);
 
   if (idIsExisting) {
-    // once we get this, go to the database and check it exists, if not redirect user to login
     const randomURLkey = generateRandomString();
     urlDatabase[randomURLkey] = { longURL: longUrl, userID: id };
     res.redirect(`/urls/${randomURLkey}`);

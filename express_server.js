@@ -118,7 +118,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 // endpoint to handle a POST to /login in our Express server
-// set our cookie for the current logged in username, which was submitted from the form in the header.js
+// set our cookie for the current logged in user_id, which was submitted from the form in the header.js
 // remember when you set the cookie in this app route is accessible in all other get routes thanks to cookie parser
 // call getUsersbyEmail(), which checks if the email in req.body.email exists in the users object
 // if its not found, 'user' var will be undefined, below if check catches this instance and wont make a cookie from req.body.email if so
@@ -130,7 +130,7 @@ app.post('/login', (req, res) => {
   const validUserEmail = emailExists(email);
   console.log("validUserEmail", validUserEmail);
 
-  const error = ["Must provide a username", "Must provide password", "Invalid Username!", "Invalid Password!"]
+  const error = ["Must provide a email", "Must provide password", "Invalid email!", "Invalid Password!"]
 
   if (!email) {
     const templateVars = {
@@ -216,7 +216,7 @@ app.get('/urls', (req, res) => {
 
 // GET app route for /urls/new app route, this needs to come before the /urls/:shortURL app route!
 // send back the global cookie we created before back into our client encloded in a 'templateVars' object
-// we are passing templateVars a key username which value is the cookie coming in with the request from the client which is currently called 'username'
+// we are passing templateVars a key user_id which value is the cookie coming in with the request from the client which is currently called 'username'
 app.get('/urls/new', (req, res) => {
   const id = req.cookies["user_id"];
   const user = users[id];

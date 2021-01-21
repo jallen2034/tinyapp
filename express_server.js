@@ -15,7 +15,7 @@ app.set("view engine", "ejs");
 
 // pseudo 'database' we use to store the urls in memory
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "kajdhsakl" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
@@ -68,6 +68,25 @@ const idExists = function (userid) {
   }
 
   return returnBool;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+const urlsForUser = function (userid) {
+  const returnUrls = {};
+
+  for (const [key, value] of Object.entries(urlDatabase)) {
+    
+    console.log("value: ", value);
+    console.log("value.userID vs: ", value["userID"]);
+    console.log("userid from param: ", userid)
+    console.log("value.longURL: ", value["longURL"]);
+
+    if (value["userID"] === userid) {
+      returnUrls[userid] = {longURL: value["longURL"], userID: value["userID"] }
+    }
+  }
+
+  return returnUrls;
 }
 
 // function to generate a 6 char random string, this is not my own implementation:
@@ -225,12 +244,20 @@ app.get('/register', (req, res) => {
 });
 
 // GET app route handler for: "/urls"
+// idExists() is ran and then a simple check is performed to allow or disallow the user from accessing /urls if they are logged in or not
 app.get('/urls', (req, res) => {
   const id = req.cookies["user_id"];
   const user = users[id];
+  const idIsExisting = idExists(id);
 
-  const templateVars = {urls: urlDatabase, user};
-  res.render('urls_index', templateVars);
+  if (idIsExisting) {
+    const filteredUrlDb = urlsForUser(id);
+    console.log("filteredUrlDb: ", filteredUrlDb);
+    const templateVars = {urls: filteredUrlDb, user};
+    res.render('urls_index', templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // GET app route for /urls/new app route, this needs to come before the /urls/:shortURL app route!

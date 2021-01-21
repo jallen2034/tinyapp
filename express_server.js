@@ -217,11 +217,11 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   const keyToDelete = req.params.shortURL;
 
   // debuging
-  console.log("DELETE POST RAN");
-  console.log("keyToDelete HI", keyToDelete);
-  console.log("urlDatabase: ", urlDatabase);
-  console.log("urlDatabase[keyToDelete]: ", urlDatabase[keyToDelete]);
-  console.log("\n");
+  // console.log("DELETE POST RAN");
+  // console.log("keyToDelete HI", keyToDelete);
+  // console.log("urlDatabase: ", urlDatabase);
+  // console.log("urlDatabase[keyToDelete]: ", urlDatabase[keyToDelete]);
+  // console.log("\n");
 
   delete urlDatabase[keyToDelete];
   res.redirect('/urls');
@@ -244,7 +244,7 @@ app.post('/urls/:shortURL', (req, res) => {
   const longUrl = req.body.edit
   const idIsExisting = idExists(id);
 
-  console.log("longUrl: ", longUrl);
+  console.log("longUrl inside of /urls/:shortURL: ", longUrl);
  
   if (idIsExisting) {
     urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
@@ -308,17 +308,39 @@ app.get('/urls/:shortURL', (req, res) => {
   const user = users[id];
 
   // debugging
-  console.log("req.params.shortURL", req.params.shortURL)
-  console.log("urlDatabase: ", urlDatabase)
-  console.log("urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL])
+  // console.log("req.params.shortURL", req.params.shortURL)
+  // console.log("urlDatabase: ", urlDatabase)
+  // console.log("urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL])
+  // console.log("urlDatabase[req.params.shortURL].longURL: ", urlDatabase[req.params.shortURL].longURL)
+
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  console.log("longURL: ", longURL);
   console.log("\n");
  
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase,
+    longURL: longURL,
     user
   };
   res.render('urls_show', templateVars);
+});
+
+// endpoint ot handle when the user clicks on a short url 
+app.get('/u/:shortURL', (req, res) => {
+
+  // debugging
+  // console.log("req.params.shortURL inside of GET /u/:shortURL", req.params.shortURL)
+  // console.log("urlDatabase inside of GET /u/:shortURL", urlDatabase)
+  // console.log("urlDatabase[req.params.shortURL] inside of GET /u/:shortURL", urlDatabase[req.params.shortURL])
+  // console.log("urlDatabase[req.params.shortURL].longURL inside of GET /u/:shortURL", urlDatabase[req.params.shortURL].longURL)
+
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  console.log(longURL);
+  if (longURL.includes('http')) {
+    return res.redirect(longURL)
+  } else {
+    return res.redirect(`https://${longURL}`);
+  }
 });
  
 // GET app route for urls.json

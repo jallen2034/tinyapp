@@ -28,7 +28,7 @@ const users = {
   },
  "user2RandomID": {
     id: "user2RandomID", 
-    email: "user2@example.com", 
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 }
@@ -69,7 +69,8 @@ const idExists = function (userid) {
  
   return returnBool;
 }
- 
+
+// function that will create a new 'copy' of the URLSdatabase but only for the user that is currently logged in
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
 const urlsForUser = function (userid) {
   const returnUrls = {};
@@ -77,11 +78,11 @@ const urlsForUser = function (userid) {
   for (const [key, value] of Object.entries(urlDatabase)) {
     
     // debuging
-    console.log("value: ", value);
-    console.log("value.userID vs: ", value["userID"]);
-    console.log("userid from param: ", userid)
-    console.log("value.longURL: ", value["longURL"]);
-    console.log("\n");
+    // console.log("value: ", value);
+    // console.log("value.userID vs: ", value["userID"]);
+    // console.log("userid from param: ", userid)
+    // console.log("value.longURL: ", value["longURL"]);
+    // console.log("\n");
  
     if (value["userID"] === userid) {
       returnUrls[key] = {longURL: value["longURL"], userID: value["userID"] }
@@ -214,7 +215,9 @@ app.post('/urls', (req, res) => {
 // POST request to handle when user clicks on a url they wish to delete from: /urls/
 app.post('/urls/:shortURL/delete', (req, res) => {
 
+  const id = req.cookies["user_id"];
   const keyToDelete = req.params.shortURL;
+  const idIsExisting = idExists(id);
 
   // debuging
   // console.log("DELETE POST RAN");
@@ -223,8 +226,12 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   // console.log("urlDatabase[keyToDelete]: ", urlDatabase[keyToDelete]);
   // console.log("\n");
 
-  delete urlDatabase[keyToDelete];
-  res.redirect('/urls');
+  if (idIsExisting) {
+    delete urlDatabase[keyToDelete];
+    res.redirect('/urls');;
+  } else {
+    res.send('You cant do that, go away \n');
+  }
 });
  
 // post request from /urls/:shortURL to edit a existing url, this takes in the /urls/:shortURL as its first paramater
@@ -236,20 +243,23 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
 
   // debuging
-  console.log("SHORT_URL POST RAN");
-  console.log("urlDatabase ", urlDatabase);
+  // console.log("SHORT_URL POST RAN");
+  // console.log("urlDatabase ", urlDatabase);
 
   const id = req.cookies["user_id"];
   const shortUrl = req.params.shortURL;
   const longUrl = req.body.edit
   const idIsExisting = idExists(id);
 
-  console.log("longUrl inside of /urls/:shortURL: ", longUrl);
+  // debugging
+  // console.log("longUrl inside of /urls/:shortURL: ", longUrl);
  
   if (idIsExisting) {
     urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
     res.redirect(`/urls/${shortUrl}`);
-  } 
+  } else {
+    res.send('You cant do that, go away \n');
+  }
 });
  
 // GET endpoint to handle loading the user registration page for the user
@@ -336,6 +346,7 @@ app.get('/u/:shortURL', (req, res) => {
 
   const longURL = urlDatabase[req.params.shortURL].longURL;
   console.log(longURL);
+
   if (longURL.includes('http')) {
     return res.redirect(longURL)
   } else {

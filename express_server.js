@@ -185,15 +185,12 @@ app.post('/urls', (req, res) => {
   // 1. need to grab user id 
   const id = req.cookies["user_id"];
   const longUrl = req.body.longURL;
-  console.log("id: ", id);
   const idIsExisting = idExists(id);
-  console.log(idIsExisting);
 
   if (idIsExisting) {
     // once we get this, go to the database and check it exists, if not redirect user to login
     const randomURLkey = generateRandomString();
     urlDatabase[randomURLkey] = { longURL: longUrl, userID: id };
-    console.log("urlDatabase: ",urlDatabase);
     res.redirect(`/urls/${randomURLkey}`);
   } else {
     res.redirect('/login');
@@ -212,7 +209,6 @@ app.post('/urls/:shortURL', (req, res) => {
   const longUrl = req.body.edit
 
   urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
-  console.log("urlDatabase", urlDatabase);
   res.redirect(`/urls/${shortUrl}`);
 });
 
@@ -232,10 +228,8 @@ app.get('/register', (req, res) => {
 app.get('/urls', (req, res) => {
   const id = req.cookies["user_id"];
   const user = users[id];
-  console.log("user", user);
 
   const templateVars = {urls: urlDatabase, user};
-  console.log(templateVars);
   res.render('urls_index', templateVars);
 });
 
@@ -246,7 +240,6 @@ app.get('/urls/new', (req, res) => {
   const id = req.cookies["user_id"];
   const user = users[id];
   const idIsExisting = idExists(id);
-  console.log(idIsExisting);
 
   if (idIsExisting) {
     const templateVars = {urls: urlDatabase, user};

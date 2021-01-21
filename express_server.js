@@ -9,6 +9,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 // using cookie parser gives us the ability to set cookies as a response and a request property, globally
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+
+// require dependancy in order for us to store user passwords as hashes 
+const bcrypt = require('bcrypt');
  
 // set ejs as the template engine that we will want to use
 app.set("view engine", "ejs");
@@ -24,28 +27,37 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    hashedPassword: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    hashedPassword: "dishwasher-funk"
   }
 }
  
 // function that will get users by email 
 // takes in req.body.email as "userEmail" from the form the user submitted to the login POST app route this function is called
+// added hashing! much security
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values
 const passwordvalidator = function (userPassword) {
   for (const value of Object.values(users)) {
-    if (value.password === userPassword) {
+
+    // debugging 
+    // console.log("value: ", value);
+    // console.log("value.id: ", value.id);
+    // console.log("value.hashedPassword: ", value.hashedPassword);
+
+    const passwordMatches = bcrypt.compareSync(userPassword, value.hashedPassword)
+    if (passwordMatches) {
       return value.id;
     }
   }
  
   return false;
 }
- 
+
+// helper function to check if a users email address already exists in our database
 const emailExists = function (userEmail) {
   let returnBool = false;
  
@@ -57,7 +69,8 @@ const emailExists = function (userEmail) {
  
   return returnBool;
 }
- 
+
+// helper function to check if a users id already exists in our database
 const idExists = function (userid) {
   let returnBool = false;
  
@@ -136,10 +149,11 @@ app.post('/register', (req, res) => {
     };
     res.status(400).render('404', templateVars);  
   } else {
-    const user = {id, email, password}
-  
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const user = {id, email, hashedPassword}
     users[id] = user;
     res.cookie('user_id', user.id);
+    console.log("usersDB after creating new account with hash: ", users);
     res.redirect('/urls');
   }
 });

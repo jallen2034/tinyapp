@@ -15,8 +15,8 @@ app.set("view engine", "ejs");
 
 // pseudo 'database' we use to store the urls in memory
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 // global object called users which will be used to store and access the users in the app.
@@ -51,6 +51,18 @@ const emailExists = function (userEmail) {
 
   for (const value of Object.values(users)) {
     if (value.email === userEmail) {
+      returnBool = true;
+    }
+  }
+
+  return returnBool;
+}
+
+const idExists = function (userid) {
+  let returnBool = false;
+
+  for (const value of Object.values(users)) {
+    if (value.id === userid) {
       returnBool = true;
     }
   }
@@ -163,16 +175,29 @@ app.post('/login', (req, res) => {
 // clear the current cookie that was generated before with the key: "user_id"
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 // POST app route that will allow the user to create a new custom URL to be saved in our database
 // this route generates a new string, then uses the long url it got from the form tagged with 'longURL' as its name in urls_new.ejs
 // it assigns this new long url to urlDatabase[] using randomString as the key and req.body.longURL as the value
 app.post('/urls', (req, res) => {
-  const randomURLkey = generateRandomString();
-  urlDatabase[randomURLkey] = req.body.longURL;
-  res.redirect(`/urls/${randomURLkey}`);
+  // 1. need to grab user id 
+  const id = req.cookies["user_id"];
+  const longUrl = req.body.longURL;
+  console.log("id: ", id);
+  const idIsExisting = idExists(id);
+  console.log(idIsExisting);
+
+  if (idIsExisting) {
+    // once we get this, go to the database and check it exists, if not redirect user to login
+    const randomURLkey = generateRandomString();
+    urlDatabase[randomURLkey] = { longURL: longUrl, userID: id };
+    console.log("urlDatabase: ",urlDatabase);
+    res.redirect(`/urls/${randomURLkey}`);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // post request from /urls/:shortURL to edit a existing url, this takes in the /urls/:shortURL as its first paramater
@@ -180,10 +205,15 @@ app.post('/urls', (req, res) => {
 // the text from the form in our urls_new.ejs was stored as a key 'edit', we access that key, the new 'long url' text the user inputted is inside that key val pair
 // assign this new 'long url' the user entered in into our 'urlDatabase' using the same key name as the we passed in to this app route: urlDatabase[urlToEdit]
 // redirect back to the /urls/${urlToEdit} app route after we are done
+// https://stackoverflow.com/questions/6084858/javascript-use-variable-as-object-name
 app.post('/urls/:shortURL', (req, res) => {
-  const urlToEdit = req.params.shortURL;
-  urlDatabase[urlToEdit] = req.body.edit;
-  res.redirect(`/urls/${urlToEdit}`);
+  const id = req.cookies["user_id"];
+  const shortUrl = req.params.shortURL;
+  const longUrl = req.body.edit
+
+  urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
+  console.log("urlDatabase", urlDatabase);
+  res.redirect(`/urls/${shortUrl}`);
 });
 
 // GET endpoint to handle loading the user registration page for the user
@@ -215,9 +245,15 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   const id = req.cookies["user_id"];
   const user = users[id];
+  const idIsExisting = idExists(id);
+  console.log(idIsExisting);
 
-  const templateVars = {urls: urlDatabase, user};
-  res.render('urls_new', templateVars);
+  if (idIsExisting) {
+    const templateVars = {urls: urlDatabase, user};
+    res.render('urls_new', templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // GET app route for short urls

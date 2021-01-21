@@ -6,8 +6,10 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
+        <% if (user) { %>
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <% } %> 
       </div>
       <!-- here user represents the key + value inside of the templateVars object which we previously passed to this template from an app route, from our server -->
       <% if (user) { %>
@@ -20,7 +22,7 @@
           <button class = "btn btn-outline-dark" type="submit" style="margin-top: 5px;">Register</button>
         </form>
         <form action="/login" method="GET">
-          <button class = "btn btn-outline-dark" type="submit" style="margin-top: 5px;">Login</button>
+          <button class = "btn btn-outline-dark" type="submit" style="margin-top: 5px; margin-left: 7px">Login</button>
         </form>  
       <% } %>  
     </div>

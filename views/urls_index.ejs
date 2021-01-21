@@ -28,7 +28,7 @@
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url].longURL %></td>
             <!--Delete button goes here-->
             <!-- https://www.w3schools.com/tags/tag_button.asp -->
             <td><form method="GET" action="/urls/<%= url %>"><button class = "btn btn-outline-primary" type="submit">Edit</button></form></td>

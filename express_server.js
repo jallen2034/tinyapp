@@ -126,10 +126,11 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  const validPasswordUserID = passwordvalidator(password);
-  const emailisValid = emailExists();
+  const validUserIDPassword = passwordvalidator(password);
+  const validUserEmail = emailExists(email);
+  console.log("validUserEmail", validUserEmail);
 
-  const error = ["Must provide a username", "Must provide password", "Invalid Password!"]
+  const error = ["Must provide a username", "Must provide password", "Invalid Username!", "Invalid Password!"]
 
   if (!email) {
     const templateVars = {
@@ -140,14 +141,19 @@ app.post('/login', (req, res) => {
     const templateVars = {
       error: error[1]
     };
-    res.status(400).render('404', templateVars); 
-  } else if (!validPasswordUserID) {
+    res.status(400).render('404', templateVars);
+  } else if (!validUserEmail) {
     const templateVars = {
       error: error[2]
     };
     res.status(400).render('404', templateVars);
+  } else if (!validUserIDPassword) {
+    const templateVars = {
+      error: error[3]
+    };
+    res.status(400).render('404', templateVars);
   } else {
-    res.cookie('user_id', validPasswordUserID);
+    res.cookie('user_id', validUserIDPassword);
     res.redirect('/urls');
   }
 });

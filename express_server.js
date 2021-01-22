@@ -16,7 +16,7 @@ app.use(cookieSession({
 
 const bcrypt = require('bcrypt');
 app.set("view engine", "ejs");
- 
+
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "kajdhsakl" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
@@ -79,8 +79,8 @@ app.post('/register', (req, res) => {
 // also features additonal detailed error handling
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  const validUserIDPassword = passwordvalidator(password, users);
   const validUserEmail = emailExists(email, users);
+  const isAuthenticated = passwordvalidator(password, users, email);
   const errors = {
     email: "Must provide email!",
     password: "Must provide password!",
@@ -103,7 +103,7 @@ app.post('/login', (req, res) => {
       error: errors.emailNoExist
     };
     res.status(400).render('404', templateVars);
-  } else if (!validUserIDPassword) {
+  } else if (!isAuthenticated) {
     const templateVars = {
       error: errors.invalidPassword
     };
@@ -254,4 +254,3 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
- 

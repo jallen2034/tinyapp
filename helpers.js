@@ -2,11 +2,11 @@ const bcrypt = require('bcrypt');
 
 // helper function that takes in req.body.email as "userEmail" and the users object, added hashing! much security!
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values
-const passwordvalidator = function(userPassword, users) {
+const passwordvalidator = function(userPassword, users, email) {
   for (const value of Object.values(users)) {
 
     const passwordMatches = bcrypt.compareSync(userPassword, value.hashedPassword);
-    if (passwordMatches) {
+    if (passwordMatches && email === value.email) {
       return value.id;
     }
   }

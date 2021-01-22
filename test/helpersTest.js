@@ -16,7 +16,7 @@ const testUsers = {
   }
 };
 
-const TtestUrlDatabase = {
+const testUrlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "kajdhsakl" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
   i34cfg: { longURL: "https://www.abc.net.au", userID: "aJ48lW" }
@@ -54,5 +54,12 @@ describe('idExists()', function() {
   });
 });
 
-
-
+// user is in database
+describe('urlsForUser()', function() {
+  it('urlsForUser() testing if able to find URLs for a particular user', function() {
+    const urls = urlsForUser("aJ48lW", testUrlDatabase);
+    const keys = Object.keys(urls);
+    
+    assert.deepEqual(keys, ['i3BoGr', 'i34cfg'], 'expectedOutput matches urls');
+  });
+});

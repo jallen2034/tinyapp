@@ -46,7 +46,6 @@ const urlsForUser = function(userid, urlDatabase) {
   const returnUrls = {};
  
   for (const [key, value] of Object.entries(urlDatabase)) {
-    
     if (value["userID"] === userid) {
       returnUrls[key] = {longURL: value["longURL"], userID: value["userID"] };
     }

@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080;
+const PORT = 8080; 
 const {passwordvalidator, emailExists, idExists, generateRandomString, urlsForUser} = require("./helpers.js");
  
 const bodyParser = require("body-parser");
@@ -69,7 +69,6 @@ app.post('/register', (req, res) => {
     const user = {id, email, hashedPassword};
     users[id] = {id, email, hashedPassword};
     req.session.user_id = user.id;
-    console.log("usersDB after creating new account with hash: ", users);
     res.redirect('/urls');
   }
 });
@@ -141,7 +140,6 @@ app.post('/urls', (req, res) => {
 // POST request to handle when user clicks on a url they wish to delete from: /urls/
 // also has the ability to tell anyone in a browser or command line with curl to go away if they try access this route and do anything shady without a valid cookie
 app.post('/urls/:shortURL/delete', (req, res) => {
-
   const id = req.session.user_id;
   const keyToDelete = req.params.shortURL;
   const idIsExisting = idExists(id, users);
@@ -158,7 +156,6 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 // also has the ability to tell anyone in a browser or command line with curl to go away if they try access this route and do anything shady without a valid cookie
 // https://stackoverflow.com/questions/6084858/javascript-use-variable-as-object-name
 app.post('/urls/:shortURL', (req, res) => {
-
   const id = req.session.user_id;
   const shortUrl = req.params.shortURL;
   const longUrl = req.body.edit;
@@ -187,14 +184,12 @@ app.get('/register', (req, res) => {
 // GET app route handler for: "/urls"
 // idExists() is ran and then a simple check is performed to allow or disallow the user from accessing /urls if they are logged in or not
 app.get('/urls', (req, res) => {
-
   const id = req.session.user_id;
   const user = users[id];
   const idIsExisting = idExists(id, users);
 
   if (idIsExisting) {
     const filteredUrlDb = urlsForUser(id, urlDatabase);
-    console.log("filteredUrlDb: ", filteredUrlDb);
     const templateVars = {urls: filteredUrlDb, user};
     res.render('urls_index', templateVars);
   } else {
@@ -221,15 +216,9 @@ app.get('/urls/new', (req, res) => {
 // GET endpoint for short urls
 // this app route also handles any redirects for when the user clicks on the 'edit' button in urls_index.js
 app.get('/urls/:shortURL', (req, res) => {
-  console.log("SHORT_URL GET RAN");
- 
   const id = req.session.user_id;
   const user = users[id];
-
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  console.log("longURL: ", longURL);
-  console.log("\n");
- 
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: longURL,
@@ -240,9 +229,7 @@ app.get('/urls/:shortURL', (req, res) => {
 
 // GET endpoint to handle when the user clicks on a short url
 app.get('/u/:shortURL', (req, res) => {
-
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  console.log(longURL);
 
   if (longURL.includes('http')) {
     return res.redirect(longURL);

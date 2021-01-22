@@ -1,14 +1,26 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const {passwordvalidator, emailExists, idExists, generateRandomString, urlsForUser} = require("./helpers.js");
  
 // include body parser module so we can submit POST requests with forms to our express server
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
  
 // using cookie parser gives us the ability to set cookies as a response and a request property, globally
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
+
+// dependancy to use the cookie-session module to encrypt our cookies
+// https://github.com/expressjs/cookie-session
+const cookieSession = require('cookie-session')
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 // require dependancy in order for us to store user passwords as hashes 
 const bcrypt = require('bcrypt');
@@ -36,89 +48,6 @@ const users = {
   }
 }
  
-// function that will get users by email 
-// takes in req.body.email as "userEmail" from the form the user submitted to the login POST app route this function is called
-// added hashing! much security
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values
-const passwordvalidator = function (userPassword) {
-  for (const value of Object.values(users)) {
-
-    // debugging 
-    // console.log("value: ", value);
-    // console.log("value.id: ", value.id);
-    // console.log("value.hashedPassword: ", value.hashedPassword);
-
-    const passwordMatches = bcrypt.compareSync(userPassword, value.hashedPassword)
-    if (passwordMatches) {
-      return value.id;
-    }
-  }
- 
-  return false;
-}
-
-// helper function to check if a users email address already exists in our database
-const emailExists = function (userEmail) {
-  let returnBool = false;
- 
-  for (const value of Object.values(users)) {
-    if (value.email === userEmail) {
-      returnBool = true;
-    }
-  }
- 
-  return returnBool;
-}
-
-// helper function to check if a users id already exists in our database
-const idExists = function (userid) {
-  let returnBool = false;
- 
-  for (const value of Object.values(users)) {
-    if (value.id === userid) {
-      returnBool = true;
-    }
-  }
- 
-  return returnBool;
-}
-
-// function that will create a new 'copy' of the URLSdatabase but only for the user that is currently logged in
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
-const urlsForUser = function (userid) {
-  const returnUrls = {};
- 
-  for (const [key, value] of Object.entries(urlDatabase)) {
-    
-    // debuging
-    // console.log("value: ", value);
-    // console.log("value.userID vs: ", value["userID"]);
-    // console.log("userid from param: ", userid)
-    // console.log("value.longURL: ", value["longURL"]);
-    // console.log("\n");
- 
-    if (value["userID"] === userid) {
-      returnUrls[key] = {longURL: value["longURL"], userID: value["userID"] }
-    }
-  }
- 
-  return returnUrls;
-}
- 
-// function to generate a 6 char random string, this is not my own implementation:
-// https://stackoverflow.com/questions/16106701/how-to-generate-a-random-string-of-letters-and-numbers-in-javascript
-const generateRandomString = function() {
-  const textLen = 6;
-  let text = "";
-  let charset = "abcdefghijklmnopqrstuvwxyz0123456789";
-  
-  for (let i = 0; i < textLen; i++) {
-    text += charset.charAt(Math.floor(Math.random() * charset.length));
-  }
- 
-  return text;
-};
- 
 // POST endpoint that will add a new user object to the global users object
 // update our global users object to add the new user's email, password and id into said nested object
 // create a new cookie and send it to their client track this users login info in their browser
@@ -126,7 +55,7 @@ const generateRandomString = function() {
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
   const id = generateRandomString();
-  const emailIsTaken = emailExists(email);
+  const emailIsTaken = emailExists(email, users);
   const errors = {
     email: "Must provide email!",
     password: "Must provide password!",
@@ -151,8 +80,8 @@ app.post('/register', (req, res) => {
   } else {
     const hashedPassword = bcrypt.hashSync(password, 10);
     const user = {id, email, hashedPassword}
-    users[id] = user;
-    res.cookie('user_id', user.id);
+    users[id] = {id, email, hashedPassword};
+    req.session.user_id = user.id;
     console.log("usersDB after creating new account with hash: ", users);
     res.redirect('/urls');
   }
@@ -165,8 +94,8 @@ app.post('/register', (req, res) => {
 // if its not found, 'user' var will be undefined, below if check catches this instance and wont make a cookie from req.body.email if so
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  const validUserIDPassword = passwordvalidator(password);
-  const validUserEmail = emailExists(email);
+  const validUserIDPassword = passwordvalidator(password, users);
+  const validUserEmail = emailExists(email, users);
   const errors = {
     email: "Must provide email!",
     password: "Must provide password!",
@@ -195,7 +124,7 @@ app.post('/login', (req, res) => {
     };
     res.status(400).render('404', templateVars);
   } else {
-    res.cookie('user_id', validUserIDPassword);
+    req.session.user_id = validUserIDPassword;
     res.redirect('/urls');
   }
 });
@@ -203,7 +132,7 @@ app.post('/login', (req, res) => {
 // endpoint to handle a POST to /logout in my Express server
 // clear the current cookie that was generated before with the key: "user_id"
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null
   res.redirect('/login');
 });
  
@@ -213,9 +142,9 @@ app.post('/logout', (req, res) => {
 // we need to grab user id
 // once we get this, go to the database and check it exists, if not redirect user to login
 app.post('/urls', (req, res) => {
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
   const longUrl = req.body.longURL;
-  const idIsExisting = idExists(id);
+  const idIsExisting = idExists(id, users);
  
   if (idIsExisting) {
     const randomURLkey = generateRandomString();
@@ -229,16 +158,9 @@ app.post('/urls', (req, res) => {
 // POST request to handle when user clicks on a url they wish to delete from: /urls/
 app.post('/urls/:shortURL/delete', (req, res) => {
 
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
   const keyToDelete = req.params.shortURL;
-  const idIsExisting = idExists(id);
-
-  // debuging
-  // console.log("DELETE POST RAN");
-  // console.log("keyToDelete HI", keyToDelete);
-  // console.log("urlDatabase: ", urlDatabase);
-  // console.log("urlDatabase[keyToDelete]: ", urlDatabase[keyToDelete]);
-  // console.log("\n");
+  const idIsExisting = idExists(id, users);
 
   if (idIsExisting) {
     delete urlDatabase[keyToDelete];
@@ -256,18 +178,11 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 // https://stackoverflow.com/questions/6084858/javascript-use-variable-as-object-name
 app.post('/urls/:shortURL', (req, res) => {
 
-  // debuging
-  // console.log("SHORT_URL POST RAN");
-  // console.log("urlDatabase ", urlDatabase);
-
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
   const shortUrl = req.params.shortURL;
   const longUrl = req.body.edit
-  const idIsExisting = idExists(id);
+  const idIsExisting = idExists(id, users);
 
-  // debugging
-  // console.log("longUrl inside of /urls/:shortURL: ", longUrl);
- 
   if (idIsExisting) {
     urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
     res.redirect(`/urls/${shortUrl}`);
@@ -292,12 +207,12 @@ app.get('/register', (req, res) => {
 // idExists() is ran and then a simple check is performed to allow or disallow the user from accessing /urls if they are logged in or not
 app.get('/urls', (req, res) => {
 
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
   const user = users[id];
-  const idIsExisting = idExists(id);
+  const idIsExisting = idExists(id, users);
 
   if (idIsExisting) {
-    const filteredUrlDb = urlsForUser(id);
+    const filteredUrlDb = urlsForUser(id, urlDatabase);
     console.log("filteredUrlDb: ", filteredUrlDb);
     const templateVars = {urls: filteredUrlDb, user};
     res.render('urls_index', templateVars);
@@ -310,9 +225,9 @@ app.get('/urls', (req, res) => {
 // send back the global cookie we created before back into our client encloded in a 'templateVars' object
 // we are passing templateVars a key user_id which value is the cookie coming in with the request from the client which is currently called 'username'
 app.get('/urls/new', (req, res) => {
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
   const user = users[id];
-  const idIsExisting = idExists(id);
+  const idIsExisting = idExists(id, users);
  
   if (idIsExisting) {
     const templateVars = {urls: urlDatabase, user};
@@ -328,14 +243,8 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   console.log("SHORT_URL GET RAN");
  
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
   const user = users[id];
-
-  // debugging
-  // console.log("req.params.shortURL", req.params.shortURL)
-  // console.log("urlDatabase: ", urlDatabase)
-  // console.log("urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL])
-  // console.log("urlDatabase[req.params.shortURL].longURL: ", urlDatabase[req.params.shortURL].longURL)
 
   const longURL = urlDatabase[req.params.shortURL].longURL;
   console.log("longURL: ", longURL);
@@ -351,12 +260,6 @@ app.get('/urls/:shortURL', (req, res) => {
 
 // endpoint ot handle when the user clicks on a short url 
 app.get('/u/:shortURL', (req, res) => {
-
-  // debugging
-  // console.log("req.params.shortURL inside of GET /u/:shortURL", req.params.shortURL)
-  // console.log("urlDatabase inside of GET /u/:shortURL", urlDatabase)
-  // console.log("urlDatabase[req.params.shortURL] inside of GET /u/:shortURL", urlDatabase[req.params.shortURL])
-  // console.log("urlDatabase[req.params.shortURL].longURL inside of GET /u/:shortURL", urlDatabase[req.params.shortURL].longURL)
 
   const longURL = urlDatabase[req.params.shortURL].longURL;
   console.log(longURL);

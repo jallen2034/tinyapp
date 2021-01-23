@@ -66,9 +66,8 @@ app.post('/register', (req, res) => {
     res.status(400).render('404', templateVars);
   } else {
     const hashedPassword = bcrypt.hashSync(password, 10);
-    const user = {id, email, hashedPassword};
     users[id] = {id, email, hashedPassword};
-    req.session.user_id = user.id;
+    req.session.user_id = users[id].id;
     res.redirect('/urls');
   }
 });
@@ -109,7 +108,7 @@ app.post('/login', (req, res) => {
     };
     res.status(400).render('404', templateVars);
   } else {
-    req.session.user_id = validUserIDPassword;
+    req.session.user_id = isAuthenticated;
     res.redirect('/urls');
   }
 });

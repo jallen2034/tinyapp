@@ -167,6 +167,18 @@ app.post('/urls/:shortURL', (req, res) => {
     res.send('You cant do that, go away \n');
   }
 });
+
+// get route to direct the user to the login page
+app.get('/', (req, res) => {
+  const id = req.session.user_id;
+  const idIsExisting = idExists(id, users);
+
+  if (idIsExisting) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
+});
  
 // GET endpoint to handle loading the user registration page for the user
 app.get('/login', (req, res) => {
@@ -218,12 +230,18 @@ app.get('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const user = users[id];
   const longURL = urlDatabase[req.params.shortURL].longURL;
+  const idIsExisting = idExists(id, users);
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: longURL,
     user
   };
-  res.render('urls_show', templateVars);
+
+  if (idIsExisting) {
+    res.render('urls_show', templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // GET endpoint to handle when the user clicks on a short url

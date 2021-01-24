@@ -35,10 +35,10 @@ const users = {
   }
 };
  
-// POST endpoint that will add a new user object to the global users object
-// update our global users object to add the new user's email, haskedPassword and id into said nested object
-// create a new cookie and send it to their client track this users login info in their browser, also features more detailed error handling
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+/* POST endpoint that will add a new user object to the global users object
+   update our global users object to add the new user's email, haskedPassword and id into said nested object
+   create a new cookie and send it to their client track this users login info in their browser, also features more detailed error handling
+   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment */
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
   const id = generateRandomString();
@@ -72,10 +72,10 @@ app.post('/register', (req, res) => {
   }
 });
  
-// endpoint to handle a POST to /login in our Express server
-// call getUsersbyEmail(), which checks if the email in req.body.email exists in the users object
-// if its not found, 'validUserEmail' const will be false, below if check catches this instance and wont make a cookie from req.body.email if so
-// also features additonal detailed error handling
+/* endpoint to handle a POST to /login in our Express server
+   call getUsersbyEmail(), which checks if the email in req.body.email exists in the users object
+   if its not found, 'validUserEmail' const will be false, below if check catches this instance and wont make a cookie from req.body.email if so
+   also features additonal detailed error handling */
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
   const validUserEmail = emailExists(email, users);
@@ -113,15 +113,15 @@ app.post('/login', (req, res) => {
   }
 });
  
-// endpoint to handle a POST to /logout in my Express server
-// clear the current cookie that was generated before with the key: "user_id"
+/* endpoint to handle a POST to /logout in my Express server
+   clear the current cookie that was generated before with the key: "user_id" */
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/login');
 });
  
-// POST app route that will allow the user to create a new custom URL to be saved in our database
-// once we get the user id from the formt he user submitted, go to the database and check it exists, if not, redirect the user to login
+/* POST app route that will allow the user to create a new custom URL to be saved in our database
+   once we get the user id from the formt he user submitted, go to the database and check it exists, if not, redirect the user to login */
 app.post('/urls', (req, res) => {
   const id = req.session.user_id;
   const longUrl = req.body.longURL;
@@ -136,8 +136,8 @@ app.post('/urls', (req, res) => {
   }
 });
  
-// POST request to handle when user clicks on a url they wish to delete from: /urls/
-// also has the ability to tell anyone in a browser or command line with curl to go away if they try access this route and do anything shady without a valid cookie
+/* POST request to handle when user clicks on a url they wish to delete from: /urls/
+   also has the ability to tell anyone in a browser or command line with curl to go away if they try access this route and do anything shady without a valid cookie */
 app.post('/urls/:shortURL/delete', (req, res) => {
   const id = req.session.user_id;
   const keyToDelete = req.params.shortURL;
@@ -151,9 +151,9 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   }
 });
  
-// post request from /urls/:shortURL to edit a existing url
-// also has the ability to tell anyone in a browser or command line with curl to go away if they try access this route and do anything shady without a valid cookie
-// https://stackoverflow.com/questions/6084858/javascript-use-variable-as-object-name
+/* post request from /urls/:shortURL to edit a existing url
+   also has the ability to tell anyone in a browser or command line with curl to go away if they try access this route and do anything shady without a valid cookie
+   https://stackoverflow.com/questions/6084858/javascript-use-variable-as-object-name */
 app.post('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const shortUrl = req.params.shortURL;
@@ -208,9 +208,9 @@ app.get('/urls', (req, res) => {
   }
 });
  
-// GET app route for /urls/new app route, this needs to come before the /urls/:shortURL app route!
-// send back the global cookie we created before back into our client encloded in a 'templateVars' object
-// we are passing templateVars a key user_id which value is the cookie coming in with the request from the client which is currently called 'username'
+/* GET app route for /urls/new app route, this needs to come before the /urls/:shortURL app route!
+   send back the global cookie we created before back into our client encloded in a 'templateVars' object
+   we are passing templateVars a key user_id which value is the cookie coming in with the request from the client which is currently called 'username' */
 app.get('/urls/new', (req, res) => {
   const id = req.session.user_id;
   const user = users[id];
@@ -224,8 +224,8 @@ app.get('/urls/new', (req, res) => {
   }
 });
  
-// GET endpoint for short urls
-// this app route also handles any redirects for when the user clicks on the 'edit' button in urls_index.js
+/* GET endpoint for short urls
+   this app route also handles any redirects for when the user clicks on the 'edit' button in urls_index.js */
 app.get('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const user = users[id];

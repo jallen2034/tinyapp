@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 
-// helper function that takes in req.body.email as "userEmail" and the users object, added hashing! much security!
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values
+/* helper function that takes in req.body.email as "userEmail" and the users object, added hashing! much security!
+   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values */
 const passwordvalidator = function(userPassword, users, email) {
   for (const value of Object.values(users)) {
 
@@ -40,8 +40,8 @@ const idExists = function(userid, users) {
   return returnBool;
 };
 
-// helper function that will create a new 'copy' of the URLSdatabase, but only for the user that is currently logged in
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+/* helper function that will create a new 'copy' of the URLSdatabase, but only for the user that is currently logged in
+   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries */
 const urlsForUser = function(userid, urlDatabase) {
   const returnUrls = {};
  
@@ -54,8 +54,8 @@ const urlsForUser = function(userid, urlDatabase) {
   return returnUrls;
 };
  
-// helper function to generate a 6 char random string, this is not my own implementation, all credit goes to its creator:
-// https://stackoverflow.com/questions/16106701/how-to-generate-a-random-string-of-letters-and-numbers-in-javascript
+/* helper function to generate a 6 char random string, this is not my own implementation, all credit goes to its creator:
+   https://stackoverflow.com/questions/16106701/how-to-generate-a-random-string-of-letters-and-numbers-in-javascript */
 const generateRandomString = function() {
   const textLen = 6;
   let text = "";

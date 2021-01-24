@@ -234,13 +234,14 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: longURL,
+    error: 'Please login before trying to access this',
     user
   };
 
   if (idIsExisting) {
     res.render('urls_show', templateVars);
   } else {
-    res.redirect('/login');
+    res.status(400).render('404', templateVars);
   }
 });
 

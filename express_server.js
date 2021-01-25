@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; 
-const {passwordvalidator, emailExists, isAuthenticated, generateRandomString, urlsForUser} = require("./helpers.js");
+const {passwordvalidator: passwordValidator, emailExists, isAuthenticated, generateRandomString, urlsForUser} = require("./helpers.js");
  
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -79,7 +79,7 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
   const validUserEmail = emailExists(email, users);
-  const isAuthenticated = passwordvalidator(password, users, email);
+  const isAuthenticated = passwordValidator(password, users, email);
   const errors = {
     email: "Must provide email!",
     password: "Must provide password!",

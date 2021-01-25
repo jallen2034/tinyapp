@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 
 /* helper function that takes in req.body.email as "userEmail" and the users object, added hashing! much security!
    https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values */
-const passwordvalidator = function(userPassword, users, email) {
+const passwordValidator = function(userPassword, users, email) {
   for (const value of Object.values(users)) {
 
     const passwordMatches = bcrypt.compareSync(userPassword, value.hashedPassword);
@@ -69,4 +69,4 @@ const generateRandomString = function() {
 };
 
 // export these helper functions to where they are needed
-module.exports = {passwordvalidator, emailExists, isAuthenticated, generateRandomString, urlsForUser};
+module.exports = {passwordValidator, emailExists, isAuthenticated, generateRandomString, urlsForUser};

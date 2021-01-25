@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; 
-const {passwordvalidator, emailExists, idExists, generateRandomString, urlsForUser} = require("./helpers.js");
+const {passwordvalidator, emailExists, isAuthenticated, generateRandomString, urlsForUser} = require("./helpers.js");
  
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -125,7 +125,7 @@ app.post('/logout', (req, res) => {
 app.post('/urls', (req, res) => {
   const id = req.session.user_id;
   const longUrl = req.body.longURL;
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
  
   if (idIsExisting) {
     const randomURLkey = generateRandomString();
@@ -141,7 +141,7 @@ app.post('/urls', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   const id = req.session.user_id;
   const keyToDelete = req.params.shortURL;
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
 
   if (idIsExisting) {
     delete urlDatabase[keyToDelete];
@@ -158,7 +158,7 @@ app.post('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const shortUrl = req.params.shortURL;
   const longUrl = req.body.edit;
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
 
   if (idIsExisting) {
     urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
@@ -171,7 +171,7 @@ app.post('/urls/:shortURL', (req, res) => {
 // get route to direct the user to the login page
 app.get('/', (req, res) => {
   const id = req.session.user_id;
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
 
   if (idIsExisting) {
     res.redirect('/urls');
@@ -197,7 +197,7 @@ app.get('/register', (req, res) => {
 app.get('/urls', (req, res) => {
   const id = req.session.user_id;
   const user = users[id];
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
 
   if (idIsExisting) {
     const filteredUrlDb = urlsForUser(id, urlDatabase);
@@ -214,7 +214,7 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   const id = req.session.user_id;
   const user = users[id];
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
  
   if (idIsExisting) {
     const templateVars = {urls: urlDatabase, user};
@@ -230,7 +230,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const user = users[id];
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  const idIsExisting = idExists(id, users);
+  const idIsExisting = isAuthenticated(id, users);
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: longURL,

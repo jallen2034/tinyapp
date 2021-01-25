@@ -28,7 +28,7 @@ const emailExists = function(userEmail, users) {
 };
 
 // helper function to check if a users id already exists in our database
-const idExists = function(userid, users) {
+const isAuthenticated = function(userid, users) {
   let returnBool = false;
  
   for (const value of Object.values(users)) {
@@ -69,4 +69,4 @@ const generateRandomString = function() {
 };
 
 // export these helper functions to where they are needed
-module.exports = {passwordvalidator, emailExists, idExists, generateRandomString, urlsForUser};
+module.exports = {passwordvalidator, emailExists, isAuthenticated, generateRandomString, urlsForUser};

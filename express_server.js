@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; 
-const {passwordvalidator: passwordValidator, emailExists, isAuthenticated, generateRandomString, urlsForUser} = require("./helpers.js");
+const {passwordValidator, emailExists, isAuthenticated, generateRandomString, urlsForUser} = require("./helpers.js");
  
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));

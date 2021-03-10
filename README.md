@@ -12,7 +12,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 ## Dependencies
 
 - Node.js
-- Express
+- Express.js
 - EJS
 - bcrypt
 - body-parser
